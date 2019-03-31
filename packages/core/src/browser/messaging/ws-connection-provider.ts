@@ -31,8 +31,21 @@ export interface WebSocketOptions {
 @injectable()
 export class WebSocketConnectionProvider {
 
-    static createProxy<T extends object>(container: interfaces.Container, path: string, target?: object): JsonRpcProxy<T> {
-        return container.get(WebSocketConnectionProvider).createProxy<T>(path, target);
+    /**
+     * Create a proxy object to remote interface of T type
+     * over a web socket connection for the given path and proxy factory.
+     */
+    static createProxy<T extends object>(container: interfaces.Container, path: string, factory: JsonRpcProxyFactory<T>): JsonRpcProxy<T>;
+    /**
+     * Create a proxy object to remote interface of T type
+     * over a web socket connection for the given path.
+     *
+     * An optional target can be provided to handle
+     * notifications and requests from a remote side.
+     */
+    static createProxy<T extends object>(container: interfaces.Container, path: string, target?: object): JsonRpcProxy<T>;
+    static createProxy<T extends object>(container: interfaces.Container, path: string, arg?: object): JsonRpcProxy<T> {
+        return container.get(WebSocketConnectionProvider).createProxy<T>(path, arg);
     }
 
     protected channelIdSeq = 0;
@@ -66,13 +79,19 @@ export class WebSocketConnectionProvider {
 
     /**
      * Create a proxy object to remote interface of T type
+     * over a web socket connection for the given path and proxy factory.
+     */
+    createProxy<T extends object>(path: string, factory: JsonRpcProxyFactory<T>): JsonRpcProxy<T>;
+    /**
+     * Create a proxy object to remote interface of T type
      * over a web socket connection for the given path.
      *
      * An optional target can be provided to handle
      * notifications and requests from a remote side.
      */
-    createProxy<T extends object>(path: string, target?: object): JsonRpcProxy<T> {
-        const factory = new JsonRpcProxyFactory<T>(target);
+    createProxy<T extends object>(path: string, target?: object): JsonRpcProxy<T>;
+    createProxy<T extends object>(path: string, arg?: object): JsonRpcProxy<T> {
+        const factory = arg instanceof JsonRpcProxyFactory ? arg : new JsonRpcProxyFactory<T>(arg);
         this.listen({
             path,
             onConnection: c => factory.listen(c)

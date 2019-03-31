@@ -16,6 +16,7 @@
 
 // tslint:disable:no-any
 
+import { injectable, unmanaged } from 'inversify';
 import { MessageConnection, ResponseError } from 'vscode-jsonrpc';
 import { ApplicationError } from '../application-error';
 import { Event, Emitter } from '../event';
@@ -93,6 +94,7 @@ export class JsonRpcConnectionHandler<T extends object> implements ConnectionHan
  *
  * @param <T> - The type of the object to expose to JSON-RPC.
  */
+@injectable()
 export class JsonRpcProxyFactory<T extends object> implements ProxyHandler<T> {
 
     protected readonly onDidOpenConnectionEmitter = new Emitter<void>();
@@ -107,7 +109,7 @@ export class JsonRpcProxyFactory<T extends object> implements ProxyHandler<T> {
      * @param target - The object to expose to JSON-RPC methods calls.  If this
      *   is omitted, the proxy won't be able to handle requests, only send them.
      */
-    constructor(public target?: any) {
+    constructor(@unmanaged() public target?: any) {
         this.waitForConnection();
     }
 
